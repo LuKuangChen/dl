@@ -1,3 +1,11 @@
+let map2 = (f, ns, ms) => {
+  assert(Array.length(ns) == Array.length(ms))
+  Array.mapWithIndex(ns, (n, i) => {
+    let m = ms[i]->Option.getExn
+    f(n, m)
+  })
+}
+
 let sigmoid = (x: float) => {
   1.0 /. (1.0 +. Math.exp(-.x))
 }

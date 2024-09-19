@@ -125,7 +125,7 @@ let d_loss_parameters = (parameters, dataset) => {
     let pred = h2->layer3
     // Console.log2("Prediction:", pred)
     // Console.log2("Actual:", output)
-    let point_loss = point_loss(output, pred)
+    let _point_loss = point_loss(output, pred)
     // Console.log2("Loss:", point_loss)
     let d_loss_pred = d_point_loss_pred(output, pred)
     // Console.log2("d Loss / d pred:", d_loss_pred)
