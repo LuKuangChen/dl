@@ -21,6 +21,20 @@ function map2(f, ns, ms) {
             });
 }
 
+function dotproduct(v1, v2) {
+  return Core__Array.reduce(map2((function (prim0, prim1) {
+                    return prim0 * prim1;
+                  }), v1, v2), 0.0, (function (prim0, prim1) {
+                return prim0 + prim1;
+              }));
+}
+
+function buildArray(length, f) {
+  return Core__Array.make(length, 0).map(function (param, i) {
+              return f(i);
+            });
+}
+
 function sigmoid(x) {
   return 1.0 / (1.0 + Math.exp(- x));
 }
@@ -59,6 +73,8 @@ function jitter(n) {
 
 export {
   map2 ,
+  dotproduct ,
+  buildArray ,
   sigmoid ,
   d_sigmoid ,
   sum ,

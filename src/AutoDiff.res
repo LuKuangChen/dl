@@ -100,6 +100,30 @@ module Term = (Env: Env) => {
   let sigmoid = x => {
     c(1.0) / (c(1.0) + exp(-x))
   }
+
+  let reLU = x => env => {
+    let x = x(env)
+    if x.output >= 0.0 {
+        x
+    } else {
+        {
+            output: 0.0,
+            derivative: constant(0.0)
+        }
+    }
+  }
+
+  let leakyReLU = x => env => {
+    if x(env).output >= 0.0 {
+        x(env)
+    } else {
+        (c(0.1) * x)(env)
+    }
+  }
+
+  let dotproduct = (v1, v2) => {
+    Array.reduce(map2(\"*", v1, v2), c(0.0), \"+")
+  }
 }
 
 module type Length = {
@@ -190,7 +214,7 @@ module ArrayEnv = (Length: Length) => {
 
   {
     // test neg
-    let z = - y
+    let z = -y
     let result = z([3.0, 5.0])
     assert(result == {
         output: -5.0,
@@ -237,6 +261,7 @@ module ArrayEnv = (Length: Length) => {
   }
 
   {
+
     // test exp
     let z = exp(x)
     let result = z([3.0, 5.0])
@@ -244,7 +269,6 @@ module ArrayEnv = (Length: Length) => {
         output: Math.exp(3.0),
         derivative: [Math.exp(3.0), 0.0],
       })
-
   }
 
   {
@@ -255,12 +279,21 @@ module ArrayEnv = (Length: Length) => {
         output: Math.log(3.0),
         derivative: [1.0 /. 3.0, 0.0],
       })
+  }
 
+  {
+    // test dotproduct
+    let z = dotproduct([c(1.0), x, y], [c(1.0), c(2.0), c(4.0)])
+    let result = z([3.0, 5.0])
+    assert(result == {
+        output: 27.0,
+        derivative: [2.0, 4.0],
+      })
   }
 
   let z = pow(x, 2.0) + x * y
   let result = z([3.0, 5.0])
   assert(result.output == 24.0)
   assert(result.derivative == [11.0, 3.0])
-//   Console.log(result)
+  //   Console.log(result)
 }

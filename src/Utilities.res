@@ -6,6 +6,16 @@ let map2 = (f, ns, ms) => {
   })
 }
 
+let dotproduct = (v1, v2) => {
+  Array.reduce(map2(\"*.", v1, v2), 0.0, \"+.")
+}
+
+let buildArray = (length, f) => {
+  Array.make(~length, 0)->Array.mapWithIndex((_, i) => {
+    f(i)
+  })
+}
+
 let sigmoid = (x: float) => {
   1.0 /. (1.0 +. Math.exp(-.x))
 }

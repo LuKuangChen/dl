@@ -110,6 +110,41 @@ function Term(Env) {
                             };
                     }), exp($tilde$neg(x))));
   };
+  var reLU = function (x) {
+    return function (env) {
+      var x$1 = x(env);
+      if (x$1.output >= 0.0) {
+        return x$1;
+      } else {
+        return {
+                output: 0.0,
+                derivative: Env.constant(0.0)
+              };
+      }
+    };
+  };
+  var leakyReLU = function (x) {
+    return function (env) {
+      if (x(env).output >= 0.0) {
+        return x(env);
+      } else {
+        return $star((function (_env) {
+                        return {
+                                output: 0.1,
+                                derivative: Env.constant(0.0)
+                              };
+                      }), x)(env);
+      }
+    };
+  };
+  var dotproduct = function (v1, v2) {
+    return Core__Array.reduce(Utilities.map2($star, v1, v2), (function (_env) {
+                  return {
+                          output: 0.0,
+                          derivative: Env.constant(0.0)
+                        };
+                }), $plus);
+  };
   return {
           ref: ref,
           c: c,
@@ -122,7 +157,10 @@ function Term(Env) {
           exp: exp,
           log: log,
           $slash: $slash,
-          sigmoid: sigmoid
+          sigmoid: sigmoid,
+          reLU: reLU,
+          leakyReLU: leakyReLU,
+          dotproduct: dotproduct
         };
 }
 
@@ -318,6 +356,15 @@ function $slash(x, y) {
   return $star(x, pow(y, -1.0));
 }
 
+function dotproduct(v1, v2) {
+  return Core__Array.reduce(Utilities.map2($star, v1, v2), (function (_env) {
+                return {
+                        output: 0.0,
+                        derivative: constant(0.0)
+                      };
+              }), $plus);
+}
+
 var x = ref(0);
 
 var y = ref(1);
@@ -338,7 +385,7 @@ if (!Caml_obj.equal(result, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          155,
+          179,
           4
         ],
         Error: new Error()
@@ -361,7 +408,7 @@ if (!Caml_obj.equal(result$1, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          165,
+          189,
           4
         ],
         Error: new Error()
@@ -386,7 +433,7 @@ if (!Caml_obj.equal(result$2, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          175,
+          199,
           4
         ],
         Error: new Error()
@@ -411,7 +458,7 @@ if (!Caml_obj.equal(result$3, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          185,
+          209,
           4
         ],
         Error: new Error()
@@ -436,7 +483,7 @@ if (!Caml_obj.equal(result$4, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          195,
+          219,
           4
         ],
         Error: new Error()
@@ -461,7 +508,7 @@ if (!Caml_obj.equal(result$5, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          205,
+          229,
           4
         ],
         Error: new Error()
@@ -486,7 +533,7 @@ if (!Caml_obj.equal(result$6, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          215,
+          239,
           4
         ],
         Error: new Error()
@@ -518,7 +565,7 @@ if (!Caml_obj.equal(result$7, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          243,
+          268,
           4
         ],
         Error: new Error()
@@ -543,33 +590,86 @@ if (!Caml_obj.equal(result$8, {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          254,
+          278,
           4
         ],
         Error: new Error()
       };
 }
 
-var z$8 = $plus(pow(x, 2.0), $star(x, y));
+var z$8 = dotproduct([
+      (function (_env) {
+          return {
+                  output: 1.0,
+                  derivative: constant(0.0)
+                };
+        }),
+      x,
+      y
+    ], [
+      (function (_env) {
+          return {
+                  output: 1.0,
+                  derivative: constant(0.0)
+                };
+        }),
+      (function (_env) {
+          return {
+                  output: 2.0,
+                  derivative: constant(0.0)
+                };
+        }),
+      (function (_env) {
+          return {
+                  output: 4.0,
+                  derivative: constant(0.0)
+                };
+        })
+    ]);
 
 var result$9 = z$8([
       3.0,
       5.0
     ]);
 
-if (result$9.output !== 24.0) {
+if (!Caml_obj.equal(result$9, {
+        output: 27.0,
+        derivative: [
+          2.0,
+          4.0
+        ]
+      })) {
   throw {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          263,
+          288,
+          4
+        ],
+        Error: new Error()
+      };
+}
+
+var z$9 = $plus(pow(x, 2.0), $star(x, y));
+
+var result$10 = z$9([
+      3.0,
+      5.0
+    ]);
+
+if (result$10.output !== 24.0) {
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "AutoDiff.res",
+          296,
           2
         ],
         Error: new Error()
       };
 }
 
-if (!Caml_obj.equal(result$9.derivative, [
+if (!Caml_obj.equal(result$10.derivative, [
         11.0,
         3.0
       ])) {
@@ -577,7 +677,7 @@ if (!Caml_obj.equal(result$9.derivative, [
         RE_EXN_ID: "Assert_failure",
         _1: [
           "AutoDiff.res",
-          264,
+          297,
           2
         ],
         Error: new Error()
