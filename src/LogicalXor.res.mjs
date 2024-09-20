@@ -54,63 +54,38 @@ function project(i) {
   }
 }
 
-var MyEnv = AutoDiff.ArrayEnv({
-      length: 9
+var MyTerm = AutoDiff.MakeTerm({
+      n: 9
     });
 
-var MyTerm = AutoDiff.Term({
-      get: MyEnv.get,
-      vadd: MyEnv.vadd,
-      vsub: MyEnv.vsub,
-      vmul: MyEnv.vmul,
-      vdiv: MyEnv.vdiv,
-      eadd: MyEnv.eadd,
-      esub: MyEnv.esub,
-      emul: MyEnv.emul,
-      ediv: MyEnv.ediv,
-      constant: MyEnv.constant,
-      update: MyEnv.update
-    });
-
-function makeInitParameters() {
-  return Utilities.buildArray(9, (function (param) {
-                return (Math.random() - 0.5) * 1.0;
-              }));
-}
+var MyExtraOps = AutoDiff.ExtraOperators(MyTerm);
 
 function loss(dataset) {
-  var parameters = Utilities.buildArray(9, MyTerm.ref);
-  var w11 = parameters.slice(0, 3);
-  var w12 = parameters.slice(3, 6);
-  var w2 = parameters.slice(6, 9);
+  var w11 = MyTerm.claimMany(3);
+  var w12 = MyTerm.claimMany(3);
+  var w2 = MyTerm.claimMany(3);
   return MyTerm.spy(Core__Array.reduce(dataset.map(function (datum) {
                       var input = datum.input;
                       var x = MyTerm.spy(MyTerm.c(input[0] ? 1.0 : 0.0), "x");
                       var y = MyTerm.spy(MyTerm.c(input[1] ? 1.0 : 0.0), "y");
-                      var h11 = MyTerm.sigmoid(MyTerm.dotproduct([
+                      var h11 = MyExtraOps.sigmoid(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
                               ], w11));
-                      var h12 = MyTerm.sigmoid(MyTerm.dotproduct([
+                      var h12 = MyExtraOps.sigmoid(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
                               ], w12));
-                      var h2 = MyTerm.sigmoid(MyTerm.dotproduct([
+                      var h2 = MyExtraOps.sigmoid(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 h11,
                                 h12
                               ], w2));
                       var pred = MyTerm.spy(h2, "Pr");
-                      return MyTerm.spy(MyTerm.$tilde$neg(MyTerm.log(datum.output ? pred : MyTerm.$neg(MyTerm.c(1.0), pred))), "loss");
+                      return MyTerm.spy(MyExtraOps.$tilde$neg(MyTerm.log(datum.output ? pred : MyExtraOps.$neg(MyTerm.c(1.0), pred))), "loss");
                     }), MyTerm.c(0.0), MyTerm.$plus), "TOTAL LOSS");
-}
-
-function closeEnough(env1, env2) {
-  return Utilities.sum(Utilities.map2((function (x, y) {
-                    return Math.pow(x - y, 2.0);
-                  }), env1, env2)) <= Number.EPSILON;
 }
 
 function learn(iteration, dataset) {
@@ -119,7 +94,7 @@ function learn(iteration, dataset) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "LogicalXor.res",
-            91,
+            80,
             2
           ],
           Error: new Error()
@@ -128,14 +103,16 @@ function learn(iteration, dataset) {
   var loss$1 = loss(dataset);
   var n = iteration;
   var shouldBreak = false;
-  var currParameter = makeInitParameters();
+  var currParameter = MyTerm.makeEnv(function () {
+        return Math.random() * 2.0 - 0.5;
+      });
   while(n >= 0 && !shouldBreak) {
     n = n - 1 | 0;
     console.log(currParameter);
-    var result = loss$1(currParameter);
-    var nextParameter = Utilities.map2((function (p, dp) {
+    var result = MyTerm.$$eval(loss$1, currParameter);
+    var nextParameter = Utilities.map2(currParameter, result.derivative, (function (p, dp) {
             return p - dp * 1.0;
-          }), currParameter, result.derivative);
+          }));
     if (Utilities.dotproduct(result.derivative, result.derivative) < Number.EPSILON) {
       shouldBreak = true;
     } else {
@@ -156,11 +133,9 @@ export {
   inject ,
   project ,
   parameterCount ,
-  MyEnv ,
   MyTerm ,
-  makeInitParameters ,
+  MyExtraOps ,
   loss ,
-  closeEnough ,
   learn ,
 }
-/* MyEnv Not a pure module */
+/* MyTerm Not a pure module */

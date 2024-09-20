@@ -3,13 +3,19 @@
 import * as Core__Array from "@rescript/core/src/Core__Array.res.mjs";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 
-function map2(f, ns, ms) {
+function buildArray(length, f) {
+  return Core__Array.make(length, 0.0).map(function (param, i) {
+              return f(i);
+            });
+}
+
+function map2(ns, ms, f) {
   if (ns.length !== ms.length) {
     throw {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Utilities.res",
-            2,
+            7,
             2
           ],
           Error: new Error()
@@ -19,38 +25,6 @@ function map2(f, ns, ms) {
               var m = Core__Option.getExn(ms[i], undefined);
               return f(n, m);
             });
-}
-
-function dotproduct(v1, v2) {
-  return Core__Array.reduce(map2((function (prim0, prim1) {
-                    return prim0 * prim1;
-                  }), v1, v2), 0.0, (function (prim0, prim1) {
-                return prim0 + prim1;
-              }));
-}
-
-function buildArray(length, f) {
-  return Core__Array.make(length, 0).map(function (param, i) {
-              return f(i);
-            });
-}
-
-function sigmoid(x) {
-  return 1.0 / (1.0 + Math.exp(- x));
-}
-
-function d_sigmoid(x) {
-  return sigmoid(x) * (1.0 - sigmoid(x));
-}
-
-function sum(ns) {
-  return Core__Array.reduce(ns, 0, (function (a, b) {
-                return a + b;
-              }));
-}
-
-function nonnegative(i) {
-  return 0 <= i;
 }
 
 function bound(n) {
@@ -71,15 +45,80 @@ function jitter(n) {
   }
 }
 
+function closeEnough(n, m) {
+  return Math.pow(n - m, 2.0) < Number.EPSILON;
+}
+
+function vadd(x, y) {
+  return map2(x, y, (function (x, y) {
+                return x + y;
+              }));
+}
+
+function vsub(x, y) {
+  return map2(x, y, (function (x, y) {
+                return x - y;
+              }));
+}
+
+function vmul(x, y) {
+  return map2(x, y, (function (x, y) {
+                return x * y;
+              }));
+}
+
+function vdiv(x, y) {
+  return map2(x, y, (function (x, y) {
+                return x / y;
+              }));
+}
+
+function eadd(x, y) {
+  return x.map(function (x) {
+              return x + y;
+            });
+}
+
+function esub(x, y) {
+  return x.map(function (x) {
+              return x - y;
+            });
+}
+
+function emul(x, y) {
+  return x.map(function (x) {
+              return x * y;
+            });
+}
+
+function ediv(x, y) {
+  return x.map(function (x) {
+              return x / y;
+            });
+}
+
+function dotproduct(v1, v2) {
+  return Core__Array.reduce(map2(v1, v2, (function (prim0, prim1) {
+                    return prim0 * prim1;
+                  })), 0.0, (function (prim0, prim1) {
+                return prim0 + prim1;
+              }));
+}
+
 export {
-  map2 ,
-  dotproduct ,
   buildArray ,
-  sigmoid ,
-  d_sigmoid ,
-  sum ,
-  nonnegative ,
+  map2 ,
   bound ,
   jitter ,
+  closeEnough ,
+  vadd ,
+  vsub ,
+  vmul ,
+  vdiv ,
+  eadd ,
+  esub ,
+  emul ,
+  ediv ,
+  dotproduct ,
 }
 /* No side effect */

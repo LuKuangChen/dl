@@ -38,21 +38,17 @@ let project = i => {
 
 let parameterCount = 9
 
-module MyEnv = ArrayEnv({
-  let length = parameterCount
+module MyTerm = MakeTerm({
+  let n = 9
 })
-
-module MyTerm = Term(MyEnv)
-
-let makeInitParameters = (): MyEnv.t =>
-  buildArray(parameterCount, _ => (Math.random() -. 0.5) *. 1.0)
+module MyExtraOps = ExtraOperators(MyTerm)
 
 let loss = dataset => {
   open! MyTerm
-  let parameters = buildArray(parameterCount, ref)
-  let w11 = Array.slice(parameters, ~start=0, ~end=3)
-  let w12 = Array.slice(parameters, ~start=3, ~end=6)
-  let w2 = Array.slice(parameters, ~start=6, ~end=9)
+  open! MyExtraOps
+  let w11 = claimMany(3)
+  let w12 = claimMany(3)
+  let w2 = claimMany(3)
   spy(
     dataset
     ->Array.map(datum => {
@@ -63,10 +59,7 @@ let loss = dataset => {
       let h11 = sigmoid(dotproduct([c(1.0), x, y], w11))
       let h12 = sigmoid(dotproduct([c(1.0), x, y], w12))
       let h2 = sigmoid(dotproduct([c(1.0), h11, h12], w2))
-      let pred = spy(
-        h2,
-        `Pr`,
-      )
+      let pred = spy(h2, `Pr`)
       spy(
         -log(
           if output {
@@ -83,21 +76,17 @@ let loss = dataset => {
   )
 }
 
-let closeEnough = (env1, env2) => {
-  sum(map2((x, y) => Math.pow(x -. y, ~exp=2.0), env1, env2)) <= Float.Constants.epsilon
-}
-
 let learn = (iteration: int, dataset) => {
   assert(iteration >= 0)
   let loss = loss(dataset)
   let n = ref(iteration)
   let shouldBreak = ref(false)
-  let currParameter = ref(makeInitParameters())
+  let currParameter = ref(MyTerm.makeEnv(() => Math.random() *. 2.0 -. 0.5))
   while n.contents >= 0 && !shouldBreak.contents {
     n := n.contents - 1
     Console.log(currParameter.contents)
-    let result = loss(currParameter.contents)
-    let nextParameter = map2((p, dp) => p -. dp *. alpha, currParameter.contents, result.derivative)
+    let result = MyTerm.eval(loss, currParameter.contents)
+    let nextParameter = map2(currParameter.contents, result.derivative, (p, dp) => p -. dp *. alpha)
 
     // when the derivative is almost 0
     if dotproduct(result.derivative, result.derivative) < Float.Constants.epsilon {
