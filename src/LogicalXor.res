@@ -9,7 +9,7 @@ type dataset = array<datum>
 type loss = float // that is in [0, +inf)
 
 // the learning rate
-let alpha = 2.0
+let alpha = 0.1
 
 let dataset = [
   {input: (true, true), output: false},
@@ -39,7 +39,7 @@ let project = i => {
 let parameterCount = 9
 
 module MyTerm = MakeTerm({
-  let n = 9
+  let n = 3*5 + 6
 })
 module MyExtraOps = ExtraOperators(MyTerm)
 
@@ -48,7 +48,10 @@ let loss = dataset => {
   open! MyExtraOps
   let w11 = claimMany(3)
   let w12 = claimMany(3)
-  let w2 = claimMany(3)
+  let w13 = claimMany(3)
+  let w14 = claimMany(3)
+  let w15 = claimMany(3)
+  let w2 = claimMany(6)
   spy(
     dataset
     ->Array.map(datum => {
@@ -56,9 +59,12 @@ let loss = dataset => {
       let (x1, x2) = input
       let x = c(inject(x1))//->spy("x")
       let y = c(inject(x2))//->spy("y")
-      let h11 = reLU(dotproduct([c(1.0), x, y], w11))
-      let h12 = sigmoid(dotproduct([c(1.0), x, y], w12))
-      let h2 = sigmoid(dotproduct([c(1.0), h11, h12], w2))
+      let h11 = leakyReLU(dotproduct([c(1.0), x, y], w11))
+      let h12 = leakyReLU(dotproduct([c(1.0), x, y], w12))
+      let h13 = leakyReLU(dotproduct([c(1.0), x, y], w13))
+      let h14 = leakyReLU(dotproduct([c(1.0), x, y], w14))
+      let h15 = leakyReLU(dotproduct([c(1.0), x, y], w15))
+      let h2 = sigmoid(dotproduct([c(1.0), h11, h12, h13, h14, h15], w2))
       let pred = h2->spy(`Pr`)
       (
         -log(
@@ -85,7 +91,10 @@ let learn = (iteration: int, dataset) => {
     n := n.contents - 1
     Console.log(currParameter.contents)
     let result = MyTerm.eval(loss, currParameter.contents)
-    let nextParameter = map2(currParameter.contents, result.derivative, (p, dp) => p -. dp *. alpha)
+    let nextParameter = map2(
+      currParameter.contents,
+      result.derivative,
+      (p, dp) => jitter(p -. dp *. alpha))
 
     // when the derivative is almost 0
     if dotproduct(result.derivative, result.derivative) < Float.Constants.epsilon {
@@ -96,4 +105,4 @@ let learn = (iteration: int, dataset) => {
   }
 }
 
-learn(1000, dataset)
+learn(100, dataset)

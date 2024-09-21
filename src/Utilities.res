@@ -44,3 +44,9 @@ let ediv = (x, y) => x->Array.map(x => Pervasives.\"/."(x, y))
 let dotproduct = (v1, v2) => {
   Array.reduce(map2(v1, v2, \"*."), 0.0, \"+.")
 }
+
+module BoundMath = {
+  let pow = (x, ~exp) => bound(Math.pow(x, ~exp))
+  let exp = (x) => bound(Math.exp(x))
+  let log = (x) => bound(Math.log(x))
+}

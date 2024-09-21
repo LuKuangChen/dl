@@ -55,7 +55,7 @@ function project(i) {
 }
 
 var MyTerm = AutoDiff.MakeTerm({
-      n: 9
+      n: 21
     });
 
 var MyExtraOps = AutoDiff.ExtraOperators(MyTerm);
@@ -63,25 +63,46 @@ var MyExtraOps = AutoDiff.ExtraOperators(MyTerm);
 function loss(dataset) {
   var w11 = MyTerm.claimMany(3);
   var w12 = MyTerm.claimMany(3);
-  var w2 = MyTerm.claimMany(3);
+  var w13 = MyTerm.claimMany(3);
+  var w14 = MyTerm.claimMany(3);
+  var w15 = MyTerm.claimMany(3);
+  var w2 = MyTerm.claimMany(6);
   return MyTerm.spy(Core__Array.reduce(dataset.map(function (datum) {
                       var input = datum.input;
                       var x = MyTerm.c(input[0] ? 1.0 : 0.0);
                       var y = MyTerm.c(input[1] ? 1.0 : 0.0);
-                      var h11 = MyExtraOps.reLU(MyExtraOps.dotproduct([
+                      var h11 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
                               ], w11));
-                      var h12 = MyExtraOps.sigmoid(MyExtraOps.dotproduct([
+                      var h12 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
                               ], w12));
+                      var h13 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
+                                MyTerm.c(1.0),
+                                x,
+                                y
+                              ], w13));
+                      var h14 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
+                                MyTerm.c(1.0),
+                                x,
+                                y
+                              ], w14));
+                      var h15 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
+                                MyTerm.c(1.0),
+                                x,
+                                y
+                              ], w15));
                       var h2 = MyExtraOps.sigmoid(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 h11,
-                                h12
+                                h12,
+                                h13,
+                                h14,
+                                h15
                               ], w2));
                       var pred = MyTerm.spy(h2, "Pr");
                       return MyExtraOps.$tilde$neg(MyTerm.log(datum.output ? pred : MyExtraOps.$neg(MyTerm.c(1.0), pred)));
@@ -94,7 +115,7 @@ function learn(iteration, dataset) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "LogicalXor.res",
-            79,
+            85,
             2
           ],
           Error: new Error()
@@ -111,7 +132,7 @@ function learn(iteration, dataset) {
     console.log(currParameter);
     var result = MyTerm.$$eval(loss$1, currParameter);
     var nextParameter = Utilities.map2(currParameter, result.derivative, (function (p, dp) {
-            return p - dp * 2.0;
+            return Utilities.jitter(p - dp * 0.1);
           }));
     if (Utilities.dotproduct(result.derivative, result.derivative) < Number.EPSILON) {
       shouldBreak = true;
@@ -121,9 +142,9 @@ function learn(iteration, dataset) {
   };
 }
 
-learn(1000, dataset);
+learn(100, dataset);
 
-var alpha = 2.0;
+var alpha = 0.1;
 
 var parameterCount = 9;
 

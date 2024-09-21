@@ -105,6 +105,24 @@ function dotproduct(v1, v2) {
               }));
 }
 
+function pow(x, exp) {
+  return bound(Math.pow(x, exp));
+}
+
+function exp(x) {
+  return bound(Math.exp(x));
+}
+
+function log(x) {
+  return bound(Math.log(x));
+}
+
+var BoundMath = {
+  pow: pow,
+  exp: exp,
+  log: log
+};
+
 export {
   buildArray ,
   map2 ,
@@ -120,5 +138,6 @@ export {
   emul ,
   ediv ,
   dotproduct ,
+  BoundMath ,
 }
 /* No side effect */
