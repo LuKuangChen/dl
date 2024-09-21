@@ -9,7 +9,7 @@ type dataset = array<datum>
 type loss = float // that is in [0, +inf)
 
 // the learning rate
-let alpha = 1.0
+let alpha = 2.0
 
 let dataset = [
   {input: (true, true), output: false},
@@ -54,22 +54,21 @@ let loss = dataset => {
     ->Array.map(datum => {
       let {input, output} = datum
       let (x1, x2) = input
-      let x = spy(c(inject(x1)), "x")
-      let y = spy(c(inject(x2)), "y")
-      let h11 = sigmoid(dotproduct([c(1.0), x, y], w11))
+      let x = c(inject(x1))//->spy("x")
+      let y = c(inject(x2))//->spy("y")
+      let h11 = reLU(dotproduct([c(1.0), x, y], w11))
       let h12 = sigmoid(dotproduct([c(1.0), x, y], w12))
       let h2 = sigmoid(dotproduct([c(1.0), h11, h12], w2))
-      let pred = spy(h2, `Pr`)
-      spy(
+      let pred = h2->spy(`Pr`)
+      (
         -log(
           if output {
             pred
           } else {
             c(1.0) - pred
           },
-        ),
-        "loss",
-      )
+        )
+      )//->spy("loss")
     })
     ->Array.reduce(c(0.0), \"+"),
     "TOTAL LOSS",

@@ -66,9 +66,9 @@ function loss(dataset) {
   var w2 = MyTerm.claimMany(3);
   return MyTerm.spy(Core__Array.reduce(dataset.map(function (datum) {
                       var input = datum.input;
-                      var x = MyTerm.spy(MyTerm.c(input[0] ? 1.0 : 0.0), "x");
-                      var y = MyTerm.spy(MyTerm.c(input[1] ? 1.0 : 0.0), "y");
-                      var h11 = MyExtraOps.sigmoid(MyExtraOps.dotproduct([
+                      var x = MyTerm.c(input[0] ? 1.0 : 0.0);
+                      var y = MyTerm.c(input[1] ? 1.0 : 0.0);
+                      var h11 = MyExtraOps.reLU(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
@@ -84,7 +84,7 @@ function loss(dataset) {
                                 h12
                               ], w2));
                       var pred = MyTerm.spy(h2, "Pr");
-                      return MyTerm.spy(MyExtraOps.$tilde$neg(MyTerm.log(datum.output ? pred : MyExtraOps.$neg(MyTerm.c(1.0), pred))), "loss");
+                      return MyExtraOps.$tilde$neg(MyTerm.log(datum.output ? pred : MyExtraOps.$neg(MyTerm.c(1.0), pred)));
                     }), MyTerm.c(0.0), MyTerm.$plus), "TOTAL LOSS");
 }
 
@@ -94,7 +94,7 @@ function learn(iteration, dataset) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "LogicalXor.res",
-            80,
+            79,
             2
           ],
           Error: new Error()
@@ -111,7 +111,7 @@ function learn(iteration, dataset) {
     console.log(currParameter);
     var result = MyTerm.$$eval(loss$1, currParameter);
     var nextParameter = Utilities.map2(currParameter, result.derivative, (function (p, dp) {
-            return p - dp * 1.0;
+            return p - dp * 2.0;
           }));
     if (Utilities.dotproduct(result.derivative, result.derivative) < Number.EPSILON) {
       shouldBreak = true;
@@ -123,7 +123,7 @@ function learn(iteration, dataset) {
 
 learn(1000, dataset);
 
-var alpha = 1.0;
+var alpha = 2.0;
 
 var parameterCount = 9;
 

@@ -7,28 +7,28 @@ module type Nat = {
 module type Term = {
   type env = array<float>
   let makeEnv: (unit => float) => env
-  type cond
-  type t
+  type cond = env => bool
+  type term
   type termMeaning = {
     output: float,
     derivative: env,
   }
-  let spy: (t, string) => t
-  let eval: (t, env) => termMeaning
-  let claim: unit => t
-  let claimMany: int => array<t>
-  let c: float => t
-  let \"+": (t, t) => t
-  let \"*": (t, t) => t
-  let \"<": (t, t) => cond
-  let \"=": (t, t) => cond
+  let spy: (term, string) => term
+  let eval: (term, env) => termMeaning
+  let claim: unit => term
+  let claimMany: int => array<term>
+  let c: float => term
+  let \"+": (term, term) => term
+  let \"*": (term, term) => term
+  let \"<": (term, term) => cond
+  let \"=": (term, term) => cond
   let not: cond => cond
   let \"&&": (cond, cond) => cond
   let \"||": (cond, cond) => cond
-  let pow: (t, float) => t
-  let exp: t => t
-  let log: t => t
-  let ifte: (cond, t, t) => t
+  let pow: (term, float) => term
+  let exp: term => term
+  let log: term => term
+  let ifte: (cond, term, term) => term
   let checkEq: (string, termMeaning, termMeaning) => unit
 }
 
@@ -38,7 +38,7 @@ module MakeTerm = (Nat: Nat): Term => {
     output: float,
     derivative: env,
   }
-  type t = Var(int) | Term(env => termMeaning)
+  type term = Var(int) | Term(env => termMeaning)
   type cond = env => bool
 
   let nVariable = Nat.n
@@ -72,7 +72,7 @@ module MakeTerm = (Nat: Nat): Term => {
           d
         },
       }
-    | Term(t) => t(env)
+    | Term(term) => term(env)
     }
   }
 
@@ -156,6 +156,18 @@ module MakeTerm = (Nat: Nat): Term => {
     },
   )
 
+  let \"=" = (x, y) => env => {
+    let x = eval(x, env)
+    let y = eval(y, env)
+    x.output == y.output
+  }
+
+  let \"<" = (x, y) => env => {
+    let x = eval(x, env)
+    let y = eval(y, env)
+    x.output < y.output
+  }
+
   let ifte = (b, x, y) => {
     Term(
       env => {
@@ -179,23 +191,11 @@ module MakeTerm = (Nat: Nat): Term => {
   let not = a => env => {
     !a(env)
   }
-
-  let \"=" = (x, y) => env => {
-    let x = eval(x, env)
-    let y = eval(y, env)
-    x.output == y.output
-  }
-
-  let \"<" = (x, y) => env => {
-    let x = eval(x, env)
-    let y = eval(y, env)
-    x.output < y.output
-  }
 }
 
 module ExtraOperators = (Term: Term) => {
   open! Term
-  type term = Term.t
+  type term = Term.term
 
   let \"~-" = (x: term) => c(-1.0) * x
   let \"-" = (x: term, y: term) => x + -y
@@ -210,165 +210,12 @@ module ExtraOperators = (Term: Term) => {
     c(1.0) / (c(1.0) + exp(-x))
   }
 
-  let reLU = x => ifte(x > c(0.0), x, c(0.0))
+  let max = (x, y) => ifte(x >= y, x, y)
+  let min = (x, y) => ifte(x <= y, x, y)
+  let reLU = x => max(x, c(0.0))
   let leakyReLU = x => ifte(x > c(0.0), x, c(0.1) * x)
 
   let dotproduct = (v1, v2) => {
     Array.reduce(map2(v1, v2, \"*"), c(0.0), \"+")
   }
-}
-
-{
-  module MyTerm = MakeTerm({
-    let n = 2
-  })
-  open! MyTerm
-  module Op = ExtraOperators(MyTerm)
-  open! Op
-  let x = claim()
-  let y = claim()
-
-  {
-    // test ref
-    let result = eval(x, [3.0, 5.0])
-    checkEq(
-      "refx",
-      result,
-      {
-        output: 3.0,
-        derivative: [1.0, 0.0],
-      },
-    )
-  }
-
-  {
-    // test ref
-    let result = eval(y, [3.0, 5.0])
-    checkEq(
-      "refy",
-      result,
-      {
-        output: 5.0,
-        derivative: [0.0, 1.0],
-      },
-    )
-  }
-
-  {
-    // test add
-    let result = eval(x + y, [3.0, 5.0])
-    checkEq(
-      "add",
-      result,
-      {
-        output: 8.0,
-        derivative: [1.0, 1.0],
-      },
-    )
-  }
-
-  {
-    // test sub
-    let result = eval(x - y, [3.0, 5.0])
-    checkEq(
-      "sub",
-      result,
-      {
-        output: -2.0,
-        derivative: [1.0, -1.0],
-      },
-    )
-  }
-
-  {
-    // test neg
-    let result = eval(-y, [3.0, 5.0])
-    checkEq(
-      "neg",
-      result,
-      {
-        output: -5.0,
-        derivative: [0.0, -1.0],
-      },
-    )
-  }
-
-  {
-    // test mul
-    let result = eval(x * y, [3.0, 5.0])
-    checkEq(
-      "mul",
-      result,
-      {
-        output: 15.0,
-        derivative: [5.0, 3.0],
-      },
-    )
-  }
-
-  {
-    // test div
-    let result = eval(x / y, [3.0, 5.0])
-    checkEq(
-      "div",
-      result,
-      {
-        output: 0.6000000000000001,
-        derivative: [0.2, -3.0 /. 25.0],
-      },
-    )
-  }
-
-  {
-    // test pow
-    let result = eval(pow(x, 5.0), [Math.Constants.e, 5.0])
-    checkEq(
-      "pow",
-      result,
-      {
-        output: Math.exp(5.0),
-        derivative: [5.0 *. Math.exp(4.0), 0.0],
-      },
-    )
-  }
-
-  {
-    // test exp
-    let z = exp(x)
-    let result = eval(z, [3.0, 5.0])
-    checkEq(
-      "exp",
-      result,
-      {
-        output: Math.exp(3.0),
-        derivative: [Math.exp(3.0), 0.0],
-      },
-    )
-  }
-
-  {
-    // test log
-    let z = log(x)
-    let result = eval(z, [3.0, 5.0])
-    checkEq(
-      "log",
-      result,
-      {
-        output: Math.log(3.0),
-        derivative: [1.0 /. 3.0, 0.0],
-      },
-    )
-  }
-
-  // test dotproduct
-  let z = dotproduct([c(1.0), x, y], [c(1.0), c(2.0), c(4.0)])
-  let result = eval(z, [3.0, 5.0])
-  checkEq(
-    "dotproduct",
-    result,
-    {
-      output: 27.0,
-      derivative: [2.0, 4.0],
-    },
-  )
 }

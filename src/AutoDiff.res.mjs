@@ -147,6 +147,20 @@ function MakeTerm(Nat) {
               })
           };
   };
+  var $eq = function (x, y) {
+    return function (env) {
+      var x$1 = $$eval(x, env);
+      var y$1 = $$eval(y, env);
+      return x$1.output === y$1.output;
+    };
+  };
+  var $less = function (x, y) {
+    return function (env) {
+      var x$1 = $$eval(x, env);
+      var y$1 = $$eval(y, env);
+      return x$1.output < y$1.output;
+    };
+  };
   var ifte = function (b, x, y) {
     return {
             TAG: "Term",
@@ -180,20 +194,6 @@ function MakeTerm(Nat) {
   var not = function (a) {
     return function (env) {
       return !a(env);
-    };
-  };
-  var $eq = function (x, y) {
-    return function (env) {
-      var x$1 = $$eval(x, env);
-      var y$1 = $$eval(y, env);
-      return x$1.output === y$1.output;
-    };
-  };
-  var $less = function (x, y) {
-    return function (env) {
-      var x$1 = $$eval(x, env);
-      var y$1 = $$eval(y, env);
-      return x$1.output < y$1.output;
     };
   };
   return {
@@ -243,9 +243,14 @@ function ExtraOperators(Term) {
   var sigmoid = function (x) {
     return $slash(Term.c(1.0), Term.$plus(Term.c(1.0), Term.exp($tilde$neg(x))));
   };
+  var max = function (x, y) {
+    return Term.ifte($great$eq(x, y), x, y);
+  };
+  var min = function (x, y) {
+    return Term.ifte($less$eq(x, y), x, y);
+  };
   var reLU = function (x) {
-    var y = Term.c(0.0);
-    return Term.ifte(Term.$less(y, x), x, Term.c(0.0));
+    return max(x, Term.c(0.0));
   };
   var leakyReLU = function (x) {
     var y = Term.c(0.0);
@@ -263,351 +268,16 @@ function ExtraOperators(Term) {
           $great$eq: $great$eq,
           $bang$eq: $bang$eq,
           sigmoid: sigmoid,
+          max: max,
+          min: min,
           reLU: reLU,
           leakyReLU: leakyReLU,
           dotproduct: dotproduct
         };
 }
 
-var claimed = {
-  contents: 0
-};
-
-function claim() {
-  var i = claimed.contents;
-  if (i < 2) {
-    claimed.contents = claimed.contents + 1 | 0;
-    return {
-            TAG: "Var",
-            _0: i
-          };
-  } else {
-    return PervasivesU.failwith("Not enough variables");
-  }
-}
-
-function $$eval(term, env) {
-  if (term.TAG !== "Var") {
-    return term._0(env);
-  }
-  var i = term._0;
-  var d = Core__Array.make(2, 0.0);
-  return {
-          output: Core__Option.getExn(env[i], undefined),
-          derivative: (d[i] = 1.0, d)
-        };
-}
-
-function checkEq(test, m1, m2) {
-  var checkCloseEnough = function (x, y, s) {
-    if (!Utilities.closeEnough(x, y)) {
-      console.log("fail check:", s);
-      console.log("- received:", x);
-      console.log("- expected:", y);
-      return ;
-    }
-    
-  };
-  checkCloseEnough(m1.output, m2.output, test + "-output");
-  Utilities.map2(m1.derivative, m2.derivative, (function (d1, d2) {
-          checkCloseEnough(d1, d2, test + "-derivative");
-        }));
-}
-
-function $plus(x, y) {
-  return {
-          TAG: "Term",
-          _0: (function (env) {
-              var x$1 = $$eval(x, env);
-              var y$1 = $$eval(y, env);
-              return {
-                      output: x$1.output + y$1.output,
-                      derivative: Utilities.vadd(x$1.derivative, y$1.derivative)
-                    };
-            })
-        };
-}
-
-function $star(x, y) {
-  return {
-          TAG: "Term",
-          _0: (function (env) {
-              var x$1 = $$eval(x, env);
-              var y$1 = $$eval(y, env);
-              return {
-                      output: x$1.output * y$1.output,
-                      derivative: Utilities.vadd(Utilities.emul(x$1.derivative, y$1.output), Utilities.emul(y$1.derivative, x$1.output))
-                    };
-            })
-        };
-}
-
-function pow(x, n) {
-  return {
-          TAG: "Term",
-          _0: (function (env) {
-              var x$1 = $$eval(x, env);
-              return {
-                      output: Math.pow(x$1.output, n),
-                      derivative: Utilities.emul(x$1.derivative, n * Math.pow(x$1.output, n - 1.0))
-                    };
-            })
-        };
-}
-
-function exp(x) {
-  return {
-          TAG: "Term",
-          _0: (function (env) {
-              var x$1 = $$eval(x, env);
-              return {
-                      output: Math.exp(x$1.output),
-                      derivative: Utilities.emul(x$1.derivative, Math.exp(x$1.output))
-                    };
-            })
-        };
-}
-
-function log(x) {
-  return {
-          TAG: "Term",
-          _0: (function (env) {
-              var x$1 = $$eval(x, env);
-              return {
-                      output: Math.log(x$1.output),
-                      derivative: Utilities.emul(x$1.derivative, 1.0 / x$1.output)
-                    };
-            })
-        };
-}
-
-function $tilde$neg(x) {
-  return $star({
-              TAG: "Term",
-              _0: (function (_env) {
-                  return {
-                          output: -1.0,
-                          derivative: Core__Array.make(2, 0.0)
-                        };
-                })
-            }, x);
-}
-
-function $neg(x, y) {
-  return $plus(x, $tilde$neg(y));
-}
-
-function $slash(x, y) {
-  return $star(x, pow(y, -1.0));
-}
-
-function dotproduct(v1, v2) {
-  return Core__Array.reduce(Utilities.map2(v1, v2, $star), {
-              TAG: "Term",
-              _0: (function (_env) {
-                  return {
-                          output: 0.0,
-                          derivative: Core__Array.make(2, 0.0)
-                        };
-                })
-            }, $plus);
-}
-
-var x = claim();
-
-var y = claim();
-
-var result = $$eval(x, [
-      3.0,
-      5.0
-    ]);
-
-checkEq("refx", result, {
-      output: 3.0,
-      derivative: [
-        1.0,
-        0.0
-      ]
-    });
-
-var result$1 = $$eval(y, [
-      3.0,
-      5.0
-    ]);
-
-checkEq("refy", result$1, {
-      output: 5.0,
-      derivative: [
-        0.0,
-        1.0
-      ]
-    });
-
-var result$2 = $$eval($plus(x, y), [
-      3.0,
-      5.0
-    ]);
-
-checkEq("add", result$2, {
-      output: 8.0,
-      derivative: [
-        1.0,
-        1.0
-      ]
-    });
-
-var result$3 = $$eval($neg(x, y), [
-      3.0,
-      5.0
-    ]);
-
-checkEq("sub", result$3, {
-      output: -2.0,
-      derivative: [
-        1.0,
-        -1.0
-      ]
-    });
-
-var result$4 = $$eval($tilde$neg(y), [
-      3.0,
-      5.0
-    ]);
-
-checkEq("neg", result$4, {
-      output: -5.0,
-      derivative: [
-        0.0,
-        -1.0
-      ]
-    });
-
-var result$5 = $$eval($star(x, y), [
-      3.0,
-      5.0
-    ]);
-
-checkEq("mul", result$5, {
-      output: 15.0,
-      derivative: [
-        5.0,
-        3.0
-      ]
-    });
-
-var result$6 = $$eval($slash(x, y), [
-      3.0,
-      5.0
-    ]);
-
-checkEq("div", result$6, {
-      output: 0.6000000000000001,
-      derivative: [
-        0.2,
-        -3.0 / 25.0
-      ]
-    });
-
-var result$7 = $$eval(pow(x, 5.0), [
-      Math.E,
-      5.0
-    ]);
-
-checkEq("pow", result$7, {
-      output: Math.exp(5.0),
-      derivative: [
-        5.0 * Math.exp(4.0),
-        0.0
-      ]
-    });
-
-var z = exp(x);
-
-var result$8 = $$eval(z, [
-      3.0,
-      5.0
-    ]);
-
-checkEq("exp", result$8, {
-      output: Math.exp(3.0),
-      derivative: [
-        Math.exp(3.0),
-        0.0
-      ]
-    });
-
-var z$1 = log(x);
-
-var result$9 = $$eval(z$1, [
-      3.0,
-      5.0
-    ]);
-
-checkEq("log", result$9, {
-      output: Math.log(3.0),
-      derivative: [
-        1.0 / 3.0,
-        0.0
-      ]
-    });
-
-var z$2 = dotproduct([
-      {
-        TAG: "Term",
-        _0: (function (_env) {
-            return {
-                    output: 1.0,
-                    derivative: Core__Array.make(2, 0.0)
-                  };
-          })
-      },
-      x,
-      y
-    ], [
-      {
-        TAG: "Term",
-        _0: (function (_env) {
-            return {
-                    output: 1.0,
-                    derivative: Core__Array.make(2, 0.0)
-                  };
-          })
-      },
-      {
-        TAG: "Term",
-        _0: (function (_env) {
-            return {
-                    output: 2.0,
-                    derivative: Core__Array.make(2, 0.0)
-                  };
-          })
-      },
-      {
-        TAG: "Term",
-        _0: (function (_env) {
-            return {
-                    output: 4.0,
-                    derivative: Core__Array.make(2, 0.0)
-                  };
-          })
-      }
-    ]);
-
-var result$10 = $$eval(z$2, [
-      3.0,
-      5.0
-    ]);
-
-checkEq("dotproduct", result$10, {
-      output: 27.0,
-      derivative: [
-        2.0,
-        4.0
-      ]
-    });
-
 export {
   MakeTerm ,
   ExtraOperators ,
 }
-/* x Not a pure module */
+/* No side effect */
