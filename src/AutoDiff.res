@@ -139,8 +139,8 @@ module MakeTerm = (): Term => {
     env => {
       let x = eval(x, env)
       {
-        output: BoundMath.pow(x.output, ~exp=n),
-        derivative: emul(x.derivative, n *. BoundMath.pow(x.output, ~exp=n -. 1.0)),
+        output: CheckedMath.pow(x.output, n),
+        derivative: emul(x.derivative, n *. CheckedMath.pow(x.output, n -. 1.0)),
       }
     },
   )
@@ -148,8 +148,8 @@ module MakeTerm = (): Term => {
     env => {
       let x = eval(x, env)
       {
-        output: BoundMath.exp(x.output),
-        derivative: emul(x.derivative, BoundMath.exp(x.output)),
+        output: CheckedMath.exp(x.output),
+        derivative: emul(x.derivative, CheckedMath.exp(x.output)),
       }
     },
   )
@@ -158,7 +158,7 @@ module MakeTerm = (): Term => {
     env => {
       let x = eval(x, env)
       {
-        output: BoundMath.log(x.output),
+        output: CheckedMath.log(x.output),
         derivative: emul(x.derivative, 1.0 /. x.output),
       }
     },

@@ -119,8 +119,8 @@ function MakeTerm($star) {
             _0: (function (env) {
                 var x$1 = $$eval(x, env);
                 return {
-                        output: Utilities.BoundMath.pow(x$1.output, n),
-                        derivative: Utilities.emul(x$1.derivative, n * Utilities.BoundMath.pow(x$1.output, n - 1.0))
+                        output: Utilities.CheckedMath.pow(x$1.output, n),
+                        derivative: Utilities.emul(x$1.derivative, n * Utilities.CheckedMath.pow(x$1.output, n - 1.0))
                       };
               })
           };
@@ -131,8 +131,8 @@ function MakeTerm($star) {
             _0: (function (env) {
                 var x$1 = $$eval(x, env);
                 return {
-                        output: Utilities.BoundMath.exp(x$1.output),
-                        derivative: Utilities.emul(x$1.derivative, Utilities.BoundMath.exp(x$1.output))
+                        output: Utilities.CheckedMath.exp(x$1.output),
+                        derivative: Utilities.emul(x$1.derivative, Utilities.CheckedMath.exp(x$1.output))
                       };
               })
           };
@@ -143,7 +143,7 @@ function MakeTerm($star) {
             _0: (function (env) {
                 var x$1 = $$eval(x, env);
                 return {
-                        output: Utilities.BoundMath.log(x$1.output),
+                        output: Utilities.CheckedMath.log(x$1.output),
                         derivative: Utilities.emul(x$1.derivative, 1.0 / x$1.output)
                       };
               })
@@ -299,4 +299,4 @@ export {
   MakeTerm ,
   ExtraOperators ,
 }
-/* No side effect */
+/* Utilities Not a pure module */
