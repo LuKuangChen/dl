@@ -9,7 +9,7 @@ type dataset = array<datum>
 type loss = float // that is in [0, +inf)
 
 // the learning rate
-let alpha = 0.1
+let alpha = 1.0
 
 let dataset = [
   {input: (true, true), output: false},
@@ -59,11 +59,12 @@ let loss = dataset => {
       let (x1, x2) = input
       let x = c(inject(x1))//->spy("x")
       let y = c(inject(x2))//->spy("y")
-      let h11 = leakyReLU(dotproduct([c(1.0), x, y], w11))
-      let h12 = leakyReLU(dotproduct([c(1.0), x, y], w12))
-      let h13 = leakyReLU(dotproduct([c(1.0), x, y], w13))
-      let h14 = leakyReLU(dotproduct([c(1.0), x, y], w14))
-      let h15 = leakyReLU(dotproduct([c(1.0), x, y], w15))
+      let act = reELU
+      let h11 = act(dotproduct([c(1.0), x, y], w11))
+      let h12 = act(dotproduct([c(1.0), x, y], w12))
+      let h13 = act(dotproduct([c(1.0), x, y], w13))
+      let h14 = act(dotproduct([c(1.0), x, y], w14))
+      let h15 = act(dotproduct([c(1.0), x, y], w15))
       let h2 = sigmoid(dotproduct([c(1.0), h11, h12, h13, h14, h15], w2))
       let pred = h2->spy(`Pr`)
       (
@@ -72,7 +73,7 @@ let loss = dataset => {
             pred
           } else {
             c(1.0) - pred
-          },
+          }
         )
       )//->spy("loss")
     })
@@ -94,7 +95,7 @@ let learn = (iteration: int, dataset) => {
     let nextParameter = map2(
       currParameter.contents,
       result.derivative,
-      (p, dp) => jitter(p -. dp *. alpha))
+      (p, dp) => p -. dp *. alpha)
 
     // when the derivative is almost 0
     if dotproduct(result.derivative, result.derivative) < Float.Constants.epsilon {

@@ -71,27 +71,28 @@ function loss(dataset) {
                       var input = datum.input;
                       var x = MyTerm.c(input[0] ? 1.0 : 0.0);
                       var y = MyTerm.c(input[1] ? 1.0 : 0.0);
-                      var h11 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
+                      var act = MyExtraOps.reELU;
+                      var h11 = act(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
                               ], w11));
-                      var h12 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
+                      var h12 = act(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
                               ], w12));
-                      var h13 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
+                      var h13 = act(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
                               ], w13));
-                      var h14 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
+                      var h14 = act(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
                               ], w14));
-                      var h15 = MyExtraOps.leakyReLU(MyExtraOps.dotproduct([
+                      var h15 = act(MyExtraOps.dotproduct([
                                 MyTerm.c(1.0),
                                 x,
                                 y
@@ -115,7 +116,7 @@ function learn(iteration, dataset) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "LogicalXor.res",
-            85,
+            86,
             2
           ],
           Error: new Error()
@@ -132,7 +133,7 @@ function learn(iteration, dataset) {
     console.log(currParameter);
     var result = MyTerm.$$eval(loss$1, currParameter);
     var nextParameter = Utilities.map2(currParameter, result.derivative, (function (p, dp) {
-            return Utilities.jitter(p - dp * 0.1);
+            return p - dp * 1.0;
           }));
     if (Utilities.dotproduct(result.derivative, result.derivative) < Number.EPSILON) {
       shouldBreak = true;
@@ -144,7 +145,7 @@ function learn(iteration, dataset) {
 
 learn(100, dataset);
 
-var alpha = 0.1;
+var alpha = 1.0;
 
 var parameterCount = 9;
 

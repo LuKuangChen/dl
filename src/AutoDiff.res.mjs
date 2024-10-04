@@ -256,6 +256,9 @@ function ExtraOperators(Term) {
     var y = Term.c(0.0);
     return Term.ifte(Term.$less(y, x), x, Term.$star(Term.c(0.1), x));
   };
+  var reELU = function (x) {
+    return Term.ifte(Term.$less(x, Term.c(0.0)), Term.exp(x), x);
+  };
   var dotproduct = function (v1, v2) {
     return Core__Array.reduce(Utilities.map2(v1, v2, Term.$star), Term.c(0.0), Term.$plus);
   };
@@ -272,6 +275,7 @@ function ExtraOperators(Term) {
           min: min,
           reLU: reLU,
           leakyReLU: leakyReLU,
+          reELU: reELU,
           dotproduct: dotproduct
         };
 }

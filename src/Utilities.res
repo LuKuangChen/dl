@@ -46,7 +46,10 @@ let dotproduct = (v1, v2) => {
 }
 
 module BoundMath = {
-  let pow = (x, ~exp) => bound(Math.pow(x, ~exp))
-  let exp = (x) => bound(Math.exp(x))
-  let log = (x) => bound(Math.log(x))
+  let max = (x, y) => if x >= y { x } else { y }
+  let min = (x, y) => if x <= y { x } else { y }
+  let ensurePos = x => max(x, Float.Constants.epsilon)
+  let pow = (x, ~exp) => bound(Math.pow(x, ~exp)) -> ensurePos
+  let exp = (x) => bound(Math.exp(x)) -> ensurePos
+  let log = (x) => bound(Math.log(x->ensurePos))
 }

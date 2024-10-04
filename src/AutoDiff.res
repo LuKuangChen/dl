@@ -214,6 +214,7 @@ module ExtraOperators = (Term: Term) => {
   let min = (x, y) => ifte(x <= y, x, y)
   let reLU = x => max(x, c(0.0))
   let leakyReLU = x => ifte(x > c(0.0), x, c(0.1) * x)
+  let reELU = x => ifte(x < c(0.0), exp(x), x)
 
   let dotproduct = (v1, v2) => {
     Array.reduce(map2(v1, v2, \"*"), c(0.0), \"+")
