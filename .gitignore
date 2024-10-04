@@ -132,3 +132,4 @@ dist
 /lib/
 .bsb.lock
 .DS_Store
+datasets/
