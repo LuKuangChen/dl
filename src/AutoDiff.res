@@ -5,16 +5,8 @@ module type Nat = {
 }
 
 module type Term = {
-  type env = array<float>
-  let makeEnv: (unit => float) => env
-  type cond = env => bool
+  type cond
   type term
-  type termMeaning = {
-    output: float,
-    derivative: env,
-  }
-  let spy: (term, string) => term
-  let eval: (term, env) => termMeaning
   let claim: unit => term
   let claimMany: int => array<term>
   let c: float => term
@@ -29,10 +21,22 @@ module type Term = {
   let exp: term => term
   let log: term => term
   let ifte: (cond, term, term) => term
+  let track: (term, string) => term
+
+  type env = array<float>
+  type termMeaning = {
+    output: float,
+    derivative: env,
+  }
+  let eval: (term, env) => termMeaning
+  let evalCond: (cond, env) => bool
   let checkEq: (string, termMeaning, termMeaning) => unit
+
+  let makeEnv: (int => float) => env
+  let updateEnv: (env, (int, float) => float) => env
 }
 
-module MakeTerm = (Nat: Nat): Term => {
+module MakeTerm = (): Term => {
   type env = array<float>
   type termMeaning = {
     output: float,
@@ -41,17 +45,16 @@ module MakeTerm = (Nat: Nat): Term => {
   type term = Var(int) | Term(env => termMeaning)
   type cond = env => bool
 
-  let nVariable = Nat.n
-  let makeEnv = m => buildArray(nVariable, _ => m())
+  let nVariable = ref(0)
+  let nVariableLocked = ref(false)
 
-  let claimed = ref(0)
   let claim = () => {
-    let i = claimed.contents
-    if i < nVariable {
-      claimed := claimed.contents + 1
+    let i = nVariable.contents
+    if ! nVariableLocked.contents {
+      nVariable := nVariable.contents + 1
       Var(i)
     } else {
-      failwith("Not enough variables")
+      failwith("Trying to claim new variables after the world has been locked.")
     }
   }
   let rec claimMany = n => {
@@ -63,17 +66,22 @@ module MakeTerm = (Nat: Nat): Term => {
   }
 
   let eval = (term, env) => {
+    nVariableLocked := true
     switch term {
     | Var(i) => {
         output: env[i]->Option.getExn,
         derivative: {
-          let d = Array.make(~length=nVariable, 0.0)
+          let d = Array.make(~length=nVariable.contents, 0.0)
           d[i] = 1.0
           d
         },
       }
     | Term(term) => term(env)
     }
+  }
+  let evalCond = (cond, env) => {
+    nVariableLocked := true
+    cond(env)
   }
 
   let checkEq = (test, m1, m2) => {
@@ -90,7 +98,7 @@ module MakeTerm = (Nat: Nat): Term => {
     })->ignore
   }
 
-  let spy = (x, name) => Term(
+  let track = (x, name) => Term(
     env => {
       let x = eval(x, env)
       Console.log2(`${name} =`, x.output)
@@ -101,7 +109,7 @@ module MakeTerm = (Nat: Nat): Term => {
   let c = v => Term(
     _env => {
       output: v,
-      derivative: Array.make(~length=nVariable, 0.0),
+      derivative: Array.make(~length=nVariable.contents, 0.0),
     },
   )
 
@@ -190,6 +198,17 @@ module MakeTerm = (Nat: Nat): Term => {
 
   let not = a => env => {
     !a(env)
+  }
+
+  let makeEnv = (maker) => {
+    let ns = Array.make(~length=nVariable.contents, 0.0)
+    ns
+    -> Array.mapWithIndex((_, i) => maker(i))
+  }
+
+  let updateEnv = (env, updater) => {
+    env
+    -> Array.mapWithIndex((v, i) => updater(i, v))
   }
 }
 

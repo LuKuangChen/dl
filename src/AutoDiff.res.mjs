@@ -6,26 +6,23 @@ import * as Core__Array from "@rescript/core/src/Core__Array.res.mjs";
 import * as PervasivesU from "rescript/lib/es6/pervasivesU.js";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
 
-function MakeTerm(Nat) {
-  var nVariable = Nat.n;
-  var makeEnv = function (m) {
-    return Utilities.buildArray(nVariable, (function (param) {
-                  return m();
-                }));
-  };
-  var claimed = {
+function MakeTerm($star) {
+  var nVariable = {
     contents: 0
   };
+  var nVariableLocked = {
+    contents: false
+  };
   var claim = function () {
-    var i = claimed.contents;
-    if (i < nVariable) {
-      claimed.contents = claimed.contents + 1 | 0;
+    var i = nVariable.contents;
+    if (nVariableLocked.contents) {
+      return PervasivesU.failwith("Trying to claim new variables after the world has been locked.");
+    } else {
+      nVariable.contents = nVariable.contents + 1 | 0;
       return {
               TAG: "Var",
               _0: i
             };
-    } else {
-      return PervasivesU.failwith("Not enough variables");
     }
   };
   var claimMany = function (n) {
@@ -39,15 +36,20 @@ function MakeTerm(Nat) {
     }
   };
   var $$eval = function (term, env) {
+    nVariableLocked.contents = true;
     if (term.TAG !== "Var") {
       return term._0(env);
     }
     var i = term._0;
-    var d = Core__Array.make(nVariable, 0.0);
+    var d = Core__Array.make(nVariable.contents, 0.0);
     return {
             output: Core__Option.getExn(env[i], undefined),
             derivative: (d[i] = 1.0, d)
           };
+  };
+  var evalCond = function (cond, env) {
+    nVariableLocked.contents = true;
+    return cond(env);
   };
   var checkEq = function (test, m1, m2) {
     var checkCloseEnough = function (x, y, s) {
@@ -64,7 +66,7 @@ function MakeTerm(Nat) {
             checkCloseEnough(d1, d2, test + "-derivative");
           }));
   };
-  var spy = function (x, name) {
+  var track = function (x, name) {
     return {
             TAG: "Term",
             _0: (function (env) {
@@ -80,7 +82,7 @@ function MakeTerm(Nat) {
             _0: (function (_env) {
                 return {
                         output: v,
-                        derivative: Core__Array.make(nVariable, 0.0)
+                        derivative: Core__Array.make(nVariable.contents, 0.0)
                       };
               })
           };
@@ -98,7 +100,7 @@ function MakeTerm(Nat) {
               })
           };
   };
-  var $star = function (x, y) {
+  var $star$1 = function (x, y) {
     return {
             TAG: "Term",
             _0: (function (env) {
@@ -196,15 +198,23 @@ function MakeTerm(Nat) {
       return !a(env);
     };
   };
+  var makeEnv = function (maker) {
+    var ns = Core__Array.make(nVariable.contents, 0.0);
+    return ns.map(function (param, i) {
+                return maker(i);
+              });
+  };
+  var updateEnv = function (env, updater) {
+    return env.map(function (v, i) {
+                return updater(i, v);
+              });
+  };
   return {
-          makeEnv: makeEnv,
-          spy: spy,
-          $$eval: $$eval,
           claim: claim,
           claimMany: claimMany,
           c: c,
           $plus: $plus,
-          $star: $star,
+          $star: $star$1,
           $less: $less,
           $eq: $eq,
           not: not,
@@ -214,7 +224,12 @@ function MakeTerm(Nat) {
           exp: exp,
           log: log,
           ifte: ifte,
-          checkEq: checkEq
+          track: track,
+          $$eval: $$eval,
+          evalCond: evalCond,
+          checkEq: checkEq,
+          makeEnv: makeEnv,
+          updateEnv: updateEnv
         };
 }
 

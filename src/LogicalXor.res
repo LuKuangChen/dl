@@ -38,9 +38,7 @@ let project = i => {
 
 let parameterCount = 9
 
-module MyTerm = MakeTerm({
-  let n = 3*5 + 6
-})
+module MyTerm = MakeTerm()
 module MyExtraOps = ExtraOperators(MyTerm)
 
 let loss = dataset => {
@@ -52,13 +50,13 @@ let loss = dataset => {
   let w14 = claimMany(3)
   let w15 = claimMany(3)
   let w2 = claimMany(6)
-  spy(
+  track(
     dataset
     ->Array.map(datum => {
       let {input, output} = datum
       let (x1, x2) = input
-      let x = c(inject(x1))//->spy("x")
-      let y = c(inject(x2))//->spy("y")
+      let x = c(inject(x1))//->track("x")
+      let y = c(inject(x2))//->track("y")
       let act = reELU
       let h11 = act(dotproduct([c(1.0), x, y], w11))
       let h12 = act(dotproduct([c(1.0), x, y], w12))
@@ -66,7 +64,7 @@ let loss = dataset => {
       let h14 = act(dotproduct([c(1.0), x, y], w14))
       let h15 = act(dotproduct([c(1.0), x, y], w15))
       let h2 = sigmoid(dotproduct([c(1.0), h11, h12, h13, h14, h15], w2))
-      let pred = h2->spy(`Pr`)
+      let pred = h2->track(`Pr`)
       (
         -log(
           if output {
@@ -75,7 +73,7 @@ let loss = dataset => {
             c(1.0) - pred
           }
         )
-      )//->spy("loss")
+      )//->track("loss")
     })
     ->Array.reduce(c(0.0), \"+"),
     "TOTAL LOSS",
@@ -87,7 +85,7 @@ let learn = (iteration: int, dataset) => {
   let loss = loss(dataset)
   let n = ref(iteration)
   let shouldBreak = ref(false)
-  let currParameter = ref(MyTerm.makeEnv(() => Math.random() *. 2.0 -. 0.5))
+  let currParameter = ref(MyTerm.makeEnv((_) => Math.random() *. 2.0 -. 0.5))
   while n.contents >= 0 && !shouldBreak.contents {
     n := n.contents - 1
     Console.log(currParameter.contents)

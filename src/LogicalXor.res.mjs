@@ -54,9 +54,7 @@ function project(i) {
   }
 }
 
-var MyTerm = AutoDiff.MakeTerm({
-      n: 21
-    });
+var MyTerm = AutoDiff.MakeTerm({});
 
 var MyExtraOps = AutoDiff.ExtraOperators(MyTerm);
 
@@ -67,7 +65,7 @@ function loss(dataset) {
   var w14 = MyTerm.claimMany(3);
   var w15 = MyTerm.claimMany(3);
   var w2 = MyTerm.claimMany(6);
-  return MyTerm.spy(Core__Array.reduce(dataset.map(function (datum) {
+  return MyTerm.track(Core__Array.reduce(dataset.map(function (datum) {
                       var input = datum.input;
                       var x = MyTerm.c(input[0] ? 1.0 : 0.0);
                       var y = MyTerm.c(input[1] ? 1.0 : 0.0);
@@ -105,7 +103,7 @@ function loss(dataset) {
                                 h14,
                                 h15
                               ], w2));
-                      var pred = MyTerm.spy(h2, "Pr");
+                      var pred = MyTerm.track(h2, "Pr");
                       return MyExtraOps.$tilde$neg(MyTerm.log(datum.output ? pred : MyExtraOps.$neg(MyTerm.c(1.0), pred)));
                     }), MyTerm.c(0.0), MyTerm.$plus), "TOTAL LOSS");
 }
@@ -116,7 +114,7 @@ function learn(iteration, dataset) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "LogicalXor.res",
-            86,
+            84,
             2
           ],
           Error: new Error()
@@ -125,7 +123,7 @@ function learn(iteration, dataset) {
   var loss$1 = loss(dataset);
   var n = iteration;
   var shouldBreak = false;
-  var currParameter = MyTerm.makeEnv(function () {
+  var currParameter = MyTerm.makeEnv(function (param) {
         return Math.random() * 2.0 - 0.5;
       });
   while(n >= 0 && !shouldBreak) {

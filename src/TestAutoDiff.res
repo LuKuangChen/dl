@@ -1,8 +1,6 @@
 open AutoDiff
 
-module MyTerm = MakeTerm({
-  let n = 2
-})
+module MyTerm = MakeTerm()
 open! MyTerm
 
 module Op = ExtraOperators(MyTerm)
@@ -191,13 +189,12 @@ checkEq(
   },
 )
 
-
-assert((x == y)([4.0, 4.0]))
-assert((!(x == y))([3.0, 5.0]))
-assert((x < y)([3.0, 5.0]))
-assert((!(x < y))([5.0, 5.0]))
-assert((x == y || x < y)([3.0, 5.0]))
-assert((!(x == y && x < y))([3.0, 5.0]))
+assert(evalCond(x == y, [4.0, 4.0]))
+assert(evalCond(!(x == y), [3.0, 5.0]))
+assert(evalCond(x < y, [3.0, 5.0]))
+assert(evalCond(!(x < y), [5.0, 5.0]))
+assert(evalCond(x == y || x < y, [3.0, 5.0]))
+assert(evalCond(!(x == y && x < y), [3.0, 5.0]))
 checkEq(
   "ifte-t",
   eval(ifte(c(1.0) < c(2.0), x, y), [3.0, 5.0]),

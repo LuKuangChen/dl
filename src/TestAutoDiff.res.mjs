@@ -2,9 +2,7 @@
 
 import * as AutoDiff from "./AutoDiff.res.mjs";
 
-var MyTerm = AutoDiff.MakeTerm({
-      n: 2
-    });
+var MyTerm = AutoDiff.MakeTerm({});
 
 var Op = AutoDiff.ExtraOperators(MyTerm);
 
@@ -213,9 +211,54 @@ MyTerm.checkEq("leakyReLU-2", MyTerm.$$eval(Op.leakyReLU(Op.$neg(x, y)), [
       ]
     });
 
-if (!MyTerm.$eq(x, y)([
+if (!MyTerm.evalCond(MyTerm.$eq(x, y), [
         4.0,
         4.0
+      ])) {
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "TestAutoDiff.res",
+          192,
+          0
+        ],
+        Error: new Error()
+      };
+}
+
+if (!MyTerm.evalCond(MyTerm.not(MyTerm.$eq(x, y)), [
+        3.0,
+        5.0
+      ])) {
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "TestAutoDiff.res",
+          193,
+          0
+        ],
+        Error: new Error()
+      };
+}
+
+if (!MyTerm.evalCond(MyTerm.$less(x, y), [
+        3.0,
+        5.0
+      ])) {
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "TestAutoDiff.res",
+          194,
+          0
+        ],
+        Error: new Error()
+      };
+}
+
+if (!MyTerm.evalCond(MyTerm.not(MyTerm.$less(x, y)), [
+        5.0,
+        5.0
       ])) {
   throw {
         RE_EXN_ID: "Assert_failure",
@@ -228,7 +271,7 @@ if (!MyTerm.$eq(x, y)([
       };
 }
 
-if (!MyTerm.not(MyTerm.$eq(x, y))([
+if (!MyTerm.evalCond(MyTerm.$pipe$pipe(MyTerm.$eq(x, y), MyTerm.$less(x, y)), [
         3.0,
         5.0
       ])) {
@@ -243,7 +286,7 @@ if (!MyTerm.not(MyTerm.$eq(x, y))([
       };
 }
 
-if (!MyTerm.$less(x, y)([
+if (!MyTerm.evalCond(MyTerm.not(MyTerm.$amp$amp(MyTerm.$eq(x, y), MyTerm.$less(x, y))), [
         3.0,
         5.0
       ])) {
@@ -252,51 +295,6 @@ if (!MyTerm.$less(x, y)([
         _1: [
           "TestAutoDiff.res",
           197,
-          0
-        ],
-        Error: new Error()
-      };
-}
-
-if (!MyTerm.not(MyTerm.$less(x, y))([
-        5.0,
-        5.0
-      ])) {
-  throw {
-        RE_EXN_ID: "Assert_failure",
-        _1: [
-          "TestAutoDiff.res",
-          198,
-          0
-        ],
-        Error: new Error()
-      };
-}
-
-if (!MyTerm.$pipe$pipe(MyTerm.$eq(x, y), MyTerm.$less(x, y))([
-        3.0,
-        5.0
-      ])) {
-  throw {
-        RE_EXN_ID: "Assert_failure",
-        _1: [
-          "TestAutoDiff.res",
-          199,
-          0
-        ],
-        Error: new Error()
-      };
-}
-
-if (!MyTerm.not(MyTerm.$amp$amp(MyTerm.$eq(x, y), MyTerm.$less(x, y)))([
-        3.0,
-        5.0
-      ])) {
-  throw {
-        RE_EXN_ID: "Assert_failure",
-        _1: [
-          "TestAutoDiff.res",
-          200,
           0
         ],
         Error: new Error()
