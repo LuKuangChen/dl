@@ -65,47 +65,45 @@ function loss(dataset) {
   var w14 = MyTerm.claimMany(3);
   var w15 = MyTerm.claimMany(3);
   var w2 = MyTerm.claimMany(6);
-  return MyTerm.track(Core__Array.reduce(dataset.map(function (datum) {
-                      var input = datum.input;
-                      var x = MyTerm.c(input[0] ? 1.0 : 0.0);
-                      var y = MyTerm.c(input[1] ? 1.0 : 0.0);
-                      var act = MyExtraOps.reELU;
-                      var h11 = act(MyExtraOps.dotproduct([
-                                MyTerm.c(1.0),
-                                x,
-                                y
-                              ], w11));
-                      var h12 = act(MyExtraOps.dotproduct([
-                                MyTerm.c(1.0),
-                                x,
-                                y
-                              ], w12));
-                      var h13 = act(MyExtraOps.dotproduct([
-                                MyTerm.c(1.0),
-                                x,
-                                y
-                              ], w13));
-                      var h14 = act(MyExtraOps.dotproduct([
-                                MyTerm.c(1.0),
-                                x,
-                                y
-                              ], w14));
-                      var h15 = act(MyExtraOps.dotproduct([
-                                MyTerm.c(1.0),
-                                x,
-                                y
-                              ], w15));
-                      var h2 = MyExtraOps.sigmoid(MyExtraOps.dotproduct([
-                                MyTerm.c(1.0),
-                                h11,
-                                h12,
-                                h13,
-                                h14,
-                                h15
-                              ], w2));
-                      var pred = MyTerm.track(h2, "Pr");
-                      return MyExtraOps.$tilde$neg(MyTerm.log(datum.output ? pred : MyExtraOps.$neg(MyTerm.c(1.0), pred)));
-                    }), MyTerm.c(0.0), MyTerm.$plus), "TOTAL LOSS");
+  return Core__Array.reduce(dataset.map(function (datum) {
+                  var input = datum.input;
+                  var x = MyTerm.c(input[0] ? 1.0 : 0.0);
+                  var y = MyTerm.c(input[1] ? 1.0 : 0.0);
+                  var h11 = MyExtraOps.reELU(MyExtraOps.dotproduct([
+                            MyTerm.c(1.0),
+                            x,
+                            y
+                          ], w11));
+                  var h12 = MyExtraOps.reELU(MyExtraOps.dotproduct([
+                            MyTerm.c(1.0),
+                            x,
+                            y
+                          ], w12));
+                  var h13 = MyExtraOps.reELU(MyExtraOps.dotproduct([
+                            MyTerm.c(1.0),
+                            x,
+                            y
+                          ], w13));
+                  var h14 = MyExtraOps.reELU(MyExtraOps.dotproduct([
+                            MyTerm.c(1.0),
+                            x,
+                            y
+                          ], w14));
+                  var h15 = MyExtraOps.reELU(MyExtraOps.dotproduct([
+                            MyTerm.c(1.0),
+                            x,
+                            y
+                          ], w15));
+                  var h2 = MyExtraOps.sigmoid(MyExtraOps.dotproduct([
+                            MyTerm.c(1.0),
+                            h11,
+                            h12,
+                            h13,
+                            h14,
+                            h15
+                          ], w2));
+                  return MyExtraOps.$tilde$neg(MyTerm.log(datum.output ? h2 : MyExtraOps.$neg(MyTerm.c(1.0), h2)));
+                }), MyTerm.c(0.0), MyTerm.$plus);
 }
 
 function learn(iteration, dataset) {
@@ -114,7 +112,7 @@ function learn(iteration, dataset) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "LogicalXor.res",
-            84,
+            77,
             2
           ],
           Error: new Error()
@@ -128,7 +126,6 @@ function learn(iteration, dataset) {
       });
   while(n >= 0 && !shouldBreak) {
     n = n - 1 | 0;
-    console.log(currParameter);
     var result = MyTerm.$$eval(loss$1, currParameter);
     var nextParameter = Utilities.map2(currParameter, result.derivative, (function (p, dp) {
             return p - dp * 1.0;
@@ -145,14 +142,11 @@ learn(100, dataset);
 
 var alpha = 1.0;
 
-var parameterCount = 9;
-
 export {
   alpha ,
   dataset ,
   inject ,
   project ,
-  parameterCount ,
   MyTerm ,
   MyExtraOps ,
   loss ,
