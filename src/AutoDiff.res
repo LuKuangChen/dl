@@ -50,7 +50,7 @@ module MakeTerm = (): Term => {
 
   let claim = () => {
     let i = nVariable.contents
-    if ! nVariableLocked.contents {
+    if !nVariableLocked.contents {
       nVariable := nVariable.contents + 1
       Var(i)
     } else {
@@ -200,15 +200,13 @@ module MakeTerm = (): Term => {
     !a(env)
   }
 
-  let makeEnv = (maker) => {
+  let makeEnv = maker => {
     let ns = Array.make(~length=nVariable.contents, 0.0)
-    ns
-    -> Array.mapWithIndex((_, i) => maker(i))
+    ns->Array.mapWithIndex((_, i) => maker(i))
   }
 
   let updateEnv = (env, updater) => {
-    env
-    -> Array.mapWithIndex((v, i) => updater(i, v))
+    env->Array.mapWithIndex((v, i) => updater(i, v))
   }
 }
 
@@ -227,6 +225,14 @@ module ExtraOperators = (Term: Term) => {
 
   let sigmoid = x => {
     c(1.0) / (c(1.0) + exp(-x))
+  }
+
+  let sum = xs => {
+    xs->Array.reduce(c(0.0), (a, b) => a + b)
+  }
+
+  let mean = xs => {
+    sum(xs) / c(Float.fromInt(Array.length(xs)))
   }
 
   let max = (x, y) => ifte(x >= y, x, y)

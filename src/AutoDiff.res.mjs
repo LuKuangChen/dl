@@ -258,6 +258,14 @@ function ExtraOperators(Term) {
   var sigmoid = function (x) {
     return $slash(Term.c(1.0), Term.$plus(Term.c(1.0), Term.exp($tilde$neg(x))));
   };
+  var sum = function (xs) {
+    return Core__Array.reduce(xs, Term.c(0.0), (function (a, b) {
+                  return Term.$plus(a, b);
+                }));
+  };
+  var mean = function (xs) {
+    return $slash(sum(xs), Term.c(xs.length));
+  };
   var max = function (x, y) {
     return Term.ifte($great$eq(x, y), x, y);
   };
@@ -286,6 +294,8 @@ function ExtraOperators(Term) {
           $great$eq: $great$eq,
           $bang$eq: $bang$eq,
           sigmoid: sigmoid,
+          sum: sum,
+          mean: mean,
           max: max,
           min: min,
           reLU: reLU,
