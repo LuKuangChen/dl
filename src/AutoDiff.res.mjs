@@ -287,6 +287,15 @@ function ExtraOperators(Term) {
   var mean = function (xs) {
     return $slash(sum(xs), Term.c(xs.length));
   };
+  var softmax = function (xs) {
+    var exs = xs.map(function (x) {
+          return Term.exp(x);
+        });
+    var sexs = sum(exs);
+    return exs.map(function (ex) {
+                return $slash(ex, sexs);
+              });
+  };
   var max = function (x, y) {
     return Term.ifte($great$eq(x, y), x, y);
   };
@@ -321,6 +330,7 @@ function ExtraOperators(Term) {
           sigmoid: sigmoid,
           sum: sum,
           mean: mean,
+          softmax: softmax,
           max: max,
           min: min,
           reLU: reLU,

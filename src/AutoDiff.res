@@ -240,6 +240,12 @@ module ExtraOperators = (Term: Term) => {
     sum(xs) / c(Float.fromInt(Array.length(xs)))
   }
 
+  let softmax = xs => {
+    let exs = Array.map(xs, x => exp(x))
+    let sexs = sum(exs)
+    Array.map(exs, ex => ex / sexs)
+  }
+
   let max = (x, y) => ifte(x >= y, x, y)
   let min = (x, y) => ifte(x <= y, x, y)
   let reLU = x => max(x, c(0.0))
