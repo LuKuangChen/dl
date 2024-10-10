@@ -1,5 +1,5 @@
 open Utilities
-open AutoDiff
+open! AutoDiff
 
 type optimizer = (~value: array<float>, ~gradient: array<float>) => array<float>
 

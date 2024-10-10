@@ -7,7 +7,8 @@ var MyTerm = AutoDiff.MakeTerm({});
 
 var MyExtraOps = AutoDiff.ExtraOperators(MyTerm);
 
-function linearModel(nInputs, nIterationOpt) {
+function linearModel(nInputs, iterationOpt) {
+  var iteration = iterationOpt !== undefined ? iterationOpt : 100;
   var init = function () {
     return Math.random() * 2.0 - 0.5;
   };
@@ -26,7 +27,7 @@ function linearModel(nInputs, nIterationOpt) {
   var $$eval = MyTerm.$$eval;
   var init$1 = MyTerm.initEnv;
   return function (dataset) {
-    return Optimizer.learn($$eval, model, loss, dataset, optimizer, 100, init$1);
+    return Optimizer.learn($$eval, model, loss, dataset, optimizer, iteration, init$1);
   };
 }
 

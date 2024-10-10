@@ -1,10 +1,9 @@
 open AutoDiff
-open Optimizer
 
 module MyTerm = MakeTerm()
 module MyExtraOps = ExtraOperators(MyTerm)
 
-let linearModel = (nInputs: int, ~nIteration=100) => {
+let linearModel = (nInputs: int, ~iteration=100) => {
   // declare initializer
   let init = () => Math.random() *. 2.0 -. 0.5
   let optimizer = Optimizer.adam(~length=nInputs + 1)
@@ -28,6 +27,6 @@ let linearModel = (nInputs: int, ~nIteration=100) => {
     (model, loss, eval, initEnv)
   }
   dataset => {
-    Optimizer.learn(~eval, ~model, ~loss, ~dataset, ~optimizer, ~iteration=100, ~init)
+    Optimizer.learn(~eval, ~model, ~loss, ~dataset, ~optimizer, ~iteration, ~init)
   }
 }
