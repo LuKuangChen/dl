@@ -95,7 +95,7 @@ let y = claim()
     result,
     {
       output: 0.6000000000000001,
-      derivative: [0.2, -3.0 /. 25.0],
+      derivative: [0.2, -0.12],
     },
   )
 }
@@ -108,7 +108,7 @@ let y = claim()
     result,
     {
       output: Math.exp(5.0),
-      derivative: [5.0 *. Math.exp(4.0), 0.0],
+      derivative: [272.9907501657212, 0.0],
     },
   )
 }
@@ -136,7 +136,7 @@ let y = claim()
     result,
     {
       output: Math.log(3.0),
-      derivative: [1.0 /. 3.0, 0.0],
+      derivative: [0.3333333333333333, 0.0],
     },
   )
 }

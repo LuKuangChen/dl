@@ -59,12 +59,12 @@ var MyTerm = AutoDiff.MakeTerm({});
 var MyExtraOps = AutoDiff.ExtraOperators(MyTerm);
 
 function loss(dataset) {
-  var w11 = MyTerm.claimMany(3);
-  var w12 = MyTerm.claimMany(3);
-  var w13 = MyTerm.claimMany(3);
-  var w14 = MyTerm.claimMany(3);
-  var w15 = MyTerm.claimMany(3);
-  var w2 = MyTerm.claimMany(6);
+  var w11 = MyTerm.claimMany(3, undefined);
+  var w12 = MyTerm.claimMany(3, undefined);
+  var w13 = MyTerm.claimMany(3, undefined);
+  var w14 = MyTerm.claimMany(3, undefined);
+  var w15 = MyTerm.claimMany(3, undefined);
+  var w2 = MyTerm.claimMany(6, undefined);
   return Core__Array.reduce(dataset.map(function (datum) {
                   var input = datum.input;
                   var x = MyTerm.c(input[0] ? 1.0 : 0.0);

@@ -4,11 +4,18 @@ module type Nat = {
   let n: int
 }
 
+type env = array<float>
+type termMeaning = {
+  output: float,
+  derivative: env,
+}
+
+
 module type Term = {
   type cond
   type term
-  let claim: unit => term
-  let claimMany: int => array<term>
+  let claim: (~init:unit=>float=?) => term
+  let claimMany: (int, ~init:unit=>float=?) => array<term>
   let c: float => term
   let \"+": (term, term) => term
   let \"*": (term, term) => term
@@ -23,11 +30,7 @@ module type Term = {
   let ifte: (cond, term, term) => term
   let track: (term, string) => term
 
-  type env = array<float>
-  type termMeaning = {
-    output: float,
-    derivative: env,
-  }
+  let initEnv: array<float>
   let eval: (term, env) => termMeaning
   let evalCond: (cond, env) => bool
   let checkEq: (string, termMeaning, termMeaning) => unit
@@ -37,31 +40,29 @@ module type Term = {
 }
 
 module MakeTerm = (): Term => {
-  type env = array<float>
-  type termMeaning = {
-    output: float,
-    derivative: env,
-  }
   type term = Var(int) | Term(env => termMeaning)
   type cond = env => bool
 
   let nVariable = ref(0)
   let nVariableLocked = ref(false)
 
-  let claim = () => {
+  let initEnv = []
+
+  let claim = (~init=()=>0.0) => {
     let i = nVariable.contents
     if !nVariableLocked.contents {
       nVariable := nVariable.contents + 1
+      Array.push(initEnv, init())
       Var(i)
     } else {
       failwith("Trying to claim new variables after the world has been locked.")
     }
   }
-  let rec claimMany = n => {
+  let rec claimMany = (n,~init=()=>0.0) => {
     if n == 0 {
       []
     } else {
-      [claim(), ...claimMany(n - 1)]
+      [claim(~init), ...claimMany(n - 1, ~init)]
     }
   }
 
@@ -217,6 +218,11 @@ module ExtraOperators = (Term: Term) => {
   let \"~-" = (x: term) => c(-1.0) * x
   let \"-" = (x: term, y: term) => x + -y
   let \"/" = (x: term, y: term) => x * pow(y, -1.0)
+
+  let \"+." = (xs, ys) => map2(xs, ys, \"+")
+  let \"-." = (xs, ys) => map2(xs, ys, \"-")
+  let \"*." = (xs, ys) => map2(xs, ys, \"*")
+  let \"/." = (xs, ys) => map2(xs, ys, \"/")
 
   let \">" = (x, y) => y < x
   let \"<=" = (x, y) => x < y || x == y

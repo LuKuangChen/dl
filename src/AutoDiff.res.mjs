@@ -13,25 +13,33 @@ function MakeTerm($star) {
   var nVariableLocked = {
     contents: false
   };
-  var claim = function () {
+  var initEnv = [];
+  var claim = function (initOpt) {
+    var init = initOpt !== undefined ? initOpt : (function () {
+          return 0.0;
+        });
     var i = nVariable.contents;
     if (nVariableLocked.contents) {
       return PervasivesU.failwith("Trying to claim new variables after the world has been locked.");
     } else {
       nVariable.contents = nVariable.contents + 1 | 0;
+      initEnv.push(init());
       return {
               TAG: "Var",
               _0: i
             };
     }
   };
-  var claimMany = function (n) {
+  var claimMany = function (n, initOpt) {
+    var init = initOpt !== undefined ? initOpt : (function () {
+          return 0.0;
+        });
     if (n === 0) {
       return [];
     } else {
       return Belt_Array.concatMany([
-                  [claim()],
-                  claimMany(n - 1 | 0)
+                  [claim(init)],
+                  claimMany(n - 1 | 0, init)
                 ]);
     }
   };
@@ -225,6 +233,7 @@ function MakeTerm($star) {
           log: log,
           ifte: ifte,
           track: track,
+          initEnv: initEnv,
           $$eval: $$eval,
           evalCond: evalCond,
           checkEq: checkEq,
@@ -242,6 +251,18 @@ function ExtraOperators(Term) {
   };
   var $slash = function (x, y) {
     return Term.$star(x, Term.pow(y, -1.0));
+  };
+  var $plus$dot = function (xs, ys) {
+    return Utilities.map2(xs, ys, Term.$plus);
+  };
+  var $neg$dot = function (xs, ys) {
+    return Utilities.map2(xs, ys, $neg);
+  };
+  var $star$dot = function (xs, ys) {
+    return Utilities.map2(xs, ys, Term.$star);
+  };
+  var $slash$dot = function (xs, ys) {
+    return Utilities.map2(xs, ys, $slash);
   };
   var $great = function (x, y) {
     return Term.$less(y, x);
@@ -289,6 +310,10 @@ function ExtraOperators(Term) {
           $tilde$neg: $tilde$neg,
           $neg: $neg,
           $slash: $slash,
+          $plus$dot: $plus$dot,
+          $neg$dot: $neg$dot,
+          $star$dot: $star$dot,
+          $slash$dot: $slash$dot,
           $great: $great,
           $less$eq: $less$eq,
           $great$eq: $great$eq,

@@ -1,3 +1,6 @@
+type datum<'input, 'output> = {input: 'input, output: 'output}
+type dataset<'input, 'output> = array<datum<'input, 'output>>
+
 let buildArray = (length, f) => {
   Array.make(~length, 0.0)->Array.mapWithIndex((_, i) => {
     f(i)

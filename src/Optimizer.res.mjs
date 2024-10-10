@@ -3,6 +3,10 @@
 import * as Utilities from "./Utilities.res.mjs";
 import * as Core__Array from "@rescript/core/src/Core__Array.res.mjs";
 
+function learn($$eval, model, loss, dataset, optimizer, iteration, init) {
+  
+}
+
 function alpha(alphaOpt) {
   var alpha$1 = alphaOpt !== undefined ? alphaOpt : 0.1;
   return function (value, gradient) {
@@ -20,8 +24,8 @@ function adam(alphaOpt, beta1Opt, beta2Opt, epsilonOpt, length) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Optimizer.res",
-            13,
-            4
+            37,
+            2
           ],
           Error: new Error()
         };
@@ -31,8 +35,8 @@ function adam(alphaOpt, beta1Opt, beta2Opt, epsilonOpt, length) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Optimizer.res",
-            14,
-            4
+            38,
+            2
           ],
           Error: new Error()
         };
@@ -42,8 +46,8 @@ function adam(alphaOpt, beta1Opt, beta2Opt, epsilonOpt, length) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Optimizer.res",
-            15,
-            4
+            39,
+            2
           ],
           Error: new Error()
         };
@@ -74,6 +78,7 @@ function adam(alphaOpt, beta1Opt, beta2Opt, epsilonOpt, length) {
 }
 
 export {
+  learn ,
   alpha ,
   adam ,
 }

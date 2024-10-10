@@ -6,9 +6,9 @@ var MyTerm = AutoDiff.MakeTerm({});
 
 var Op = AutoDiff.ExtraOperators(MyTerm);
 
-var x = MyTerm.claim();
+var x = MyTerm.claim(undefined);
 
-var y = MyTerm.claim();
+var y = MyTerm.claim(undefined);
 
 var result = MyTerm.$$eval(x, [
       3.0,
@@ -97,7 +97,7 @@ MyTerm.checkEq("div", result$6, {
       output: 0.6000000000000001,
       derivative: [
         0.2,
-        -3.0 / 25.0
+        -0.12
       ]
     });
 
@@ -109,7 +109,7 @@ var result$7 = MyTerm.$$eval(MyTerm.pow(x, 5.0), [
 MyTerm.checkEq("pow", result$7, {
       output: Math.exp(5.0),
       derivative: [
-        5.0 * Math.exp(4.0),
+        272.9907501657212,
         0.0
       ]
     });
@@ -139,7 +139,7 @@ var result$9 = MyTerm.$$eval(z$1, [
 MyTerm.checkEq("log", result$9, {
       output: Math.log(3.0),
       derivative: [
-        1.0 / 3.0,
+        0.3333333333333333,
         0.0
       ]
     });
