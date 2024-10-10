@@ -24,6 +24,7 @@ let learn = (~eval, ~model, ~loss, ~dataset, ~optimizer, ~iteration, ~init) => {
         loop(~iteration, ~init, ~currLoss)
       }
     }
+    loop(~iteration, ~init, ~currLoss=Float.Constants.positiveInfinity)
 }
 
 let alpha = (~alpha=0.1): optimizer => {

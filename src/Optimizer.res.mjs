@@ -4,7 +4,32 @@ import * as Utilities from "./Utilities.res.mjs";
 import * as Core__Array from "@rescript/core/src/Core__Array.res.mjs";
 
 function learn($$eval, model, loss, dataset, optimizer, iteration, init) {
-  
+  var _iteration = iteration;
+  var _init = init;
+  var _currLoss = Number.POSITIVE_INFINITY;
+  while(true) {
+    var currLoss = _currLoss;
+    var init$1 = _init;
+    var iteration$1 = _iteration;
+    if (iteration$1 === 0) {
+      return init$1;
+    }
+    var match = $$eval(loss(dataset.map(function (datum) {
+                  return model(datum.input);
+                }), dataset.map(function (datum) {
+                  return datum.output;
+                })), init$1);
+    var nextLoss = match.output;
+    if (Math.pow(currLoss - nextLoss, 2.0) < Number.EPSILON) {
+      return init$1;
+    }
+    var iteration$2 = iteration$1 - 1 | 0;
+    var init$2 = optimizer(init$1, match.derivative);
+    _currLoss = nextLoss;
+    _init = init$2;
+    _iteration = iteration$2;
+    continue ;
+  };
 }
 
 function alpha(alphaOpt) {
@@ -24,7 +49,7 @@ function adam(alphaOpt, beta1Opt, beta2Opt, epsilonOpt, length) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Optimizer.res",
-            37,
+            38,
             2
           ],
           Error: new Error()
@@ -35,7 +60,7 @@ function adam(alphaOpt, beta1Opt, beta2Opt, epsilonOpt, length) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Optimizer.res",
-            38,
+            39,
             2
           ],
           Error: new Error()
@@ -46,7 +71,7 @@ function adam(alphaOpt, beta1Opt, beta2Opt, epsilonOpt, length) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Optimizer.res",
-            39,
+            40,
             2
           ],
           Error: new Error()

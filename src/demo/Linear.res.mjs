@@ -26,7 +26,7 @@ function linearModel(nInputs, nIterationOpt) {
   var $$eval = MyTerm.$$eval;
   var init$1 = MyTerm.initEnv;
   return function (dataset) {
-    Optimizer.learn($$eval, model, loss, dataset, optimizer, 100, init$1);
+    return Optimizer.learn($$eval, model, loss, dataset, optimizer, 100, init$1);
   };
 }
 

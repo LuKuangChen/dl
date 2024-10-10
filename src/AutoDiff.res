@@ -10,7 +10,6 @@ type termMeaning = {
   derivative: env,
 }
 
-
 module type Term = {
   type cond
   type term
