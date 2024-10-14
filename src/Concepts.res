@@ -1,27 +1,45 @@
-module type Dataset = {
-    type input
-    type output
-    type datum = {
-        input, output
-    }
-    type t = array<datum>
+module type DataSchema = {
+  type input
+  type output
+  type datum = {input: input, output: output}
 }
 
-module type Term = {
-    type t<'domain>
-    type env
-    let eval: (t<'domain>, env) => 'domain
-    let run: (t<float>, env) => (float, env)
+module type Model = {
+  module DataSchema: DataSchema
+  module Term: AutoDiff.Term
+  type distribution
+  let f: DataSchema.input => distribution
+  let mode: (distribution, AutoDiff.env) => DataSchema.output
+  let loss: (distribution, DataSchema.output) => Term.term
 }
 
-module type Model = (Dataset: Dataset, Term: Term) => {
-    let nParameters: int
-    type t = (Dataset.input) => Term.t<Dataset.output>
-}
+type optimizer = (~value: array<float>, ~gradient: array<float>) => array<float>
 
-module type Loss = (Dataset: Dataset) => {
-    type t = (~predicted:Dataset.output, ~expected:Dataset.output) => float
-}
-
-module type Optimizer = (Term: Term) => {
+module Learn = (Model: Model) => {
+  open Model
+  open DataSchema
+  let learn = (dataset: array<datum>, ~optimizer: optimizer, ~iteration=100): AutoDiff.env => {
+    let loss =
+      dataset
+      ->Array.map(({input, output}) => {
+        loss(f(input), output)
+      })
+      ->Array.reduce(Term.c(0.0), Term.\"+")
+    let init = Term.initEnv
+    let rec loop = (~iteration, ~env, ~currLoss) =>
+      if iteration == 0 {
+        env
+      } else {
+        let {output: nextLoss, derivative} = Term.eval(loss, env)
+        if Math.pow(currLoss -. nextLoss, ~exp=2.0) < Float.Constants.epsilon {
+          env
+        } else {
+          let iteration = iteration - 1
+          let env = optimizer(~value=env, ~gradient=derivative)
+          let currLoss = nextLoss
+          loop(~iteration, ~env, ~currLoss)
+        }
+      }
+    loop(~iteration, ~env=init, ~currLoss=Float.Constants.positiveInfinity)
+  }
 }

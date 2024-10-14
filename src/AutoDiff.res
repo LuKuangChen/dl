@@ -13,8 +13,8 @@ type termMeaning = {
 module type Term = {
   type cond
   type term
-  let claim: (~init:unit=>float=?) => term
-  let claimMany: (int, ~init:unit=>float=?) => array<term>
+  let claim: (~init: unit => float=?) => term
+  let claimMany: (int, ~init: unit => float=?) => array<term>
   let c: float => term
   let \"+": (term, term) => term
   let \"*": (term, term) => term
@@ -47,7 +47,7 @@ module MakeTerm = (): Term => {
 
   let initEnv = []
 
-  let claim = (~init=()=>0.0) => {
+  let claim = (~init=() => 0.0) => {
     let i = nVariable.contents
     if !nVariableLocked.contents {
       nVariable := nVariable.contents + 1
@@ -57,7 +57,7 @@ module MakeTerm = (): Term => {
       failwith("Trying to claim new variables after the world has been locked.")
     }
   }
-  let rec claimMany = (n,~init=()=>0.0) => {
+  let rec claimMany = (n, ~init=() => 0.0) => {
     if n == 0 {
       []
     } else {
@@ -248,6 +248,39 @@ module ExtraOperators = (Term: Term) => {
 
   let max = (x, y) => ifte(x >= y, x, y)
   let min = (x, y) => ifte(x <= y, x, y)
+
+
+  let maxOf = xs => {
+    let xs = List.fromArray(xs)
+    switch xs {
+      | list{} => failwith("invalid input to argmax, expecting at least one parameters")
+      | list{x, ...xs} => {
+        let rec loop = (x, ys) => {
+          switch ys {
+            | list{} => x
+            | list{y, ...ys} => {
+              loop(
+                max(x, y),
+                ys
+              )
+            }
+          }
+        }
+        loop(x, xs)
+      }
+    }
+  }
+
+  let argmax = xs => {
+    let maxX = maxOf(xs)
+    Array.reduceRightWithIndex(xs, c(-1.0), (els, x, i) => {
+      ifte(
+        x == maxX,
+        c(i -> Int.toFloat),
+        els)
+    })
+  }
+
   let reLU = x => max(x, c(0.0))
   let leakyReLU = x => ifte(x > c(0.0), x, c(0.1) * x)
   let reELU = x => ifte(x < c(0.0), exp(x), x)

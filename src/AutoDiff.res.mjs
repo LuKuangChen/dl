@@ -2,6 +2,7 @@
 
 import * as Utilities from "./Utilities.res.mjs";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
+import * as Core__List from "@rescript/core/src/Core__List.res.mjs";
 import * as Core__Array from "@rescript/core/src/Core__Array.res.mjs";
 import * as PervasivesU from "rescript/lib/es6/pervasivesU.js";
 import * as Core__Option from "@rescript/core/src/Core__Option.res.mjs";
@@ -302,6 +303,30 @@ function ExtraOperators(Term) {
   var min = function (x, y) {
     return Term.ifte($less$eq(x, y), x, y);
   };
+  var maxOf = function (xs) {
+    var xs$1 = Core__List.fromArray(xs);
+    if (!xs$1) {
+      return PervasivesU.failwith("invalid input to argmax, expecting at least one parameters");
+    }
+    var _x = xs$1.hd;
+    var _ys = xs$1.tl;
+    while(true) {
+      var ys = _ys;
+      var x = _x;
+      if (!ys) {
+        return x;
+      }
+      _ys = ys.tl;
+      _x = max(x, ys.hd);
+      continue ;
+    };
+  };
+  var argmax = function (xs) {
+    var maxX = maxOf(xs);
+    return Core__Array.reduceRightWithIndex(xs, Term.c(-1.0), (function (els, x, i) {
+                  return Term.ifte(Term.$eq(x, maxX), Term.c(i), els);
+                }));
+  };
   var reLU = function (x) {
     return max(x, Term.c(0.0));
   };
@@ -333,6 +358,8 @@ function ExtraOperators(Term) {
           softmax: softmax,
           max: max,
           min: min,
+          maxOf: maxOf,
+          argmax: argmax,
           reLU: reLU,
           leakyReLU: leakyReLU,
           reELU: reELU,

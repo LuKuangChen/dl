@@ -24,11 +24,18 @@ With research experience in the area of Programming Languages, I am unhappy with
 
 A deep learning task is that given a dataset, find the function that best describe the data under certain constrains. The constraints limit the form and placeholder within the functions.
 
-A **dataset** is an array of **datum**. Each datum has an **input** and an **output**. Multiple inputs? Wrap them in a tuple or an array! _The output must be a float._
+A **dataset** is an array of **datum**. Each datum has an **input** and an **output**. Multiple inputs? Wrap them in a tuple or an array!
 
-A **model** (of a **dataset**) is, conceptually, a function from an input, a parameter environment, to an output.
+A **DataSchema** (`module type DataSchema`) describes the datasets that share the same input type and output type.
 
-A **loss** function takes a predicted output and an expected output and produce a float.
+A **Model** (`module type Model`) is, very roughly speaking, a function from input to output. But there are many extra information to keep along the side:
+
+* `module Dataset`: The **DataSchema** of the supported dataset
+* `module Term`: You can consider it as an auto-diff-able subset of ReScript. Because it is auto-diff-able, it necessarily contains parameters, and need an environment (`AutoDiff.env`) to figure out the meaning of the parameters. This is why the `mode` function (explained below) takes an `AutoDiff.env` in addition to the distribution.
+* `type distribution`: The model's representation of the **output distribution**.
+* `let f`: A function `f` from an input to a distribution of the output.
+* `let loss`: The loss function.
+* `let mode`: The function computes the mode from the distribution. This function is useful when we use the model to make prediction.
 
 ## What is here?
 
